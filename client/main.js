@@ -1,3 +1,5 @@
+const API_BASE_URL = "https://ecommerce-backend-flax-eight.vercel.app";
+
 /********************************
  * GLOBAL VARIABLES
  ********************************/
@@ -146,7 +148,7 @@ document.getElementById("signup-form")?.addEventListener("submit", async e => {
   const password = document.getElementById("signup-password").value;
 
   try {
-    const res = await fetch("http://localhost:5000/api/auth/register", {
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password })
@@ -178,7 +180,7 @@ document.getElementById("login-form")?.addEventListener("submit", async e => {
   const password = document.getElementById("login-password").value;
 
   try {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -245,7 +247,7 @@ async function fetchOrders() {
   ordersDiv.innerHTML = "<p>Loading your orders.....</p>"; 
 
   try {
-    const res = await fetch("http://localhost:5000/api/order/my-orders", {
+    const res = await fetch(`${API_BASE_URL}/api/order/my-orders`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -307,7 +309,7 @@ document.getElementById("place-order-form")?.addEventListener("submit", async (e
   };
 
   try {
-    const res = await fetch("http://localhost:5000/api/order/place-order", {
+    const res = await fetch(`${API_BASE_URL}/api/order/place-order`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
