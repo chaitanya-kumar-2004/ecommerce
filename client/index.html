@@ -9,13 +9,17 @@
       href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
       rel="stylesheet"
     />
-    <script src="http://unpkg.com/ccrollreveal"></script>
   </head>
   <body>
     <header>
       <a href="#"
         ><img src="img/logo.png" alt="Business-logo" class="logo" />
       </a>
+
+       <!-- Hamburger menu (mobile) -->
+      <div class="menu-toggle" id="menu-toggle">
+        <i class="bx bx-menu"></i>
+      </div>
 
       <ul class="navbar">
         <li><a href="#Home">Home</a></li>
@@ -75,7 +79,7 @@
 
       <div class="form-container" id="order-form" style="display: none;">
         <h2>Place an Order</h2>
-        <form action="#">
+        <form id="place-order-form">
           <select name="product" required>
             <option value="" disabled selected>Select Product</option>
             <option value="Textile">Traditional Textile</option>
@@ -286,6 +290,7 @@
                 <a href="#"><i class="bx bxl-twitter"></i></a>
                 <a href="#"><i class="bx bxl-instagram"></i></a>
                </div>
-      <script src="main.js"></script>
+      
+      <script src="main.js" defer></script>
   </body>
 </html>

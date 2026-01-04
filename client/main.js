@@ -1,292 +1,338 @@
-
-
-
-document.addEventListener("DOMContentLoaded", ()=> {
-
-  const sr = ScrollReveal({  // Fixed "ScrollRevel" typo
-      distance: '60px',
-      duration: 2500,
-      delay: 400,
-      reset: true
-  });
-
-  sr.reveal('.text', { delay: 200, origin: 'top' });
-  sr.reveal('.form-container form', { delay: 800, origin: 'left' });
-  sr.reveal('.heading', { delay: 800, origin: 'top' });
-  sr.reveal('.service-container .box', { delay: 600, origin: 'top' });
-  sr.reveal('.products-container .box', { delay: 600, origin: 'top' });
-  sr.reveal('.about-container .about-text', { delay: 800, origin: 'top' });
-  sr.reveal('.reviews-container', { delay: 800, origin: 'top' });
-  sr.reveal('.newsletter .box', { delay: 400, origin: 'bottom'});
-});
-
+/********************************
+ * GLOBAL VARIABLES
+ ********************************/
+let authForm, registerForm, orderForm, dashboard, homeSection;
 let token = null;
 
+/********************************
+ * SECTION SWITCHER
+ ********************************/
+function showSection(section) {
+  // Hide both Home and Dashboard first
+  homeSection.style.display = "none";
+  dashboard.style.display = "none";
 
-document.getElementById('signup-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const name = document.getElementById('signup-name').value;
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-
-  try {
-  const response = await fetch('http://localhost:5000/api/auth/register', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password, name }),
-  });
-  if (!response.ok) {
-  throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const data = await response.json();
-  alert(data.message);
-  if (response.ok) {
-  authForm.style.display = 'block';
-  registerForm.style.display = 'none';
-  orderForm.style.display = 'none';
-  }
-  } catch (error) {
-  console.error('Error during signup:', error);
-  alert(`An error occurred during signup: ${error.message}`);
-  }
- });
-
- document.getElementById('login-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
-
-  try {
-  const response = await fetch('http://localhost:5000/api/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password }),
-  });
-  if (!response.ok) {
-  throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const data = await response.json();
-  if (data.token) {
-  token = data.token;
-  showSection(dashboard);
-  fetchOrders();
-  updateNavbar();
-  } else {
-  alert(data.message);
-  }
-  } catch (error) {
-  console.error('Error during login:', error);
-  alert(`An error occurred during login: ${error.message}`);
-  }
- });
- 
- document.getElementById('logout').addEventListener('click', () => {
-  token = null;
-  showSection(homeSection);
-  authForm.style.display = 'block';
-  registerForm.style.display = 'none';
-  orderForm.style.display = 'none';
-  updateNavbar();
- });
-
- // Define a function to get the user’s order history (like checking their purchase receipts)
-async function fetchOrders() {
-  // Start a safe block to catch any problems while fetching orders
-  try {
-    // Ask the backend for the user’s orders, showing the token to prove they’re a member
-    const response = await fetch('http://localhost:5000/api/order/my-orders', {
-      // Send the token in the request header (like showing a membership card)
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    // Check if the backend says the token is invalid or expired (status 401 or 403)
-    if (response.status === 401 || response.status === 403) {
-      // Show a message telling the user their session is over
-      alert('Session expired. Please log in again.');
-      // Clear the token (throw away the membership card)
-      token = null;
-      // Show the main page (like going back to the shop’s entrance)
-      showSection(homeSection);
-      // Show the login form so they can sign in again
-      authForm.style.display = 'block';
-      // Hide the sign-up form (not needed now)
-      registerForm.style.display = 'none';
-      // Hide the order form (not needed now)
-      orderForm.style.display = 'none';
-      // Update the navigation bar to show sign-up/sign-in links
-      updateNavbar();
-      // Stop the function since they need to log in again
-      return;
-    }
-    // Check if the backend says something else went wrong
-    if (!response.ok) {
-      // Create an error message with the status code
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    // Get the list of orders from the backend
-    const orders = await response.json();
-    // Find the area on the dashboard where orders will be shown
-    const ordersDiv = document.getElementById('user-orders');
-    // Check if there are no orders or the list is empty
-    if (!orders || orders.length === 0) {
-      // Show a message saying no orders were found
-      ordersDiv.innerHTML = '<p>No orders found.</p>';
-    } else {
-      // Create a heading and list of orders to display
-      ordersDiv.innerHTML = '<h3>Your Orders</h3>' + orders.map(order => `
-        // Create a box for each order with its details
-        <div>
-          // Show the product name (like “Textile”)
-          <p><strong>Product:</strong> ${order.product}</p>
-          // Show how many items were ordered
-          <p><strong>Quantity:</strong> ${order.quantity}</p>
-          // Show the order date in a nice format
-          <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
-        </div>
-      // Add a line between each order for clarity
-      `).join('<hr>');
-    }
-  // If something goes wrong (like a network issue), handle the error
-  } catch (error) {
-    // Log the error for developers to debug
-    console.error('Error fetching orders:', error);
-    // Show an error message in the orders area
-    document.getElementById('user-orders').innerHTML = `<p>Error loading orders: ${error.message}</p>`;
-  }
+  // Then show the desired section
+  if (section === homeSection) {
+    homeSection.style.display = "grid";
+  } else if (section === dashboard) {
+    dashboard.style.display = "block";
+  }
 }
 
-// Listen for when someone submits the order form (like placing a new order for a handicraft)
-// document.getElementById('place-order-form').addEventListener('submit', async (e) => {
-//   // Stop the form from sending data the usual way (we handle it ourselves)
-//   e.preventDefault();
-//   // Collect all the form data (like product, quantity, name, etc.)
-//   const formData = new FormData(e.target);
-//   // Turn the form data into a simple object we can send
-//   const orderData = Object.fromEntries(formData);
+/********************************
+ * NAVBAR UPDATE (NOW CONTROLS HEADER LOGOUT BUTTON)
+ ********************************/
+function updateNavbar() {
+  const signUp = document.querySelector(".sign-up");
+  const signIn = document.querySelector(".sign-in");
+  // Target the #logout element, now an <a> tag in the header
+  const logoutBtn = document.getElementById("logout"); 
 
-//   // Start a safe block to catch any problems while placing the order
-//   try {
-//     // Send the order details to the backend, including the token to prove they’re a member
-//     const response = await fetch('http://localhost:5000/api/order/place-order', {
-//       // Use POST to send new data (like submitting an order)
-//       method: 'POST',
-//       // Set headers to tell the backend we’re sending JSON and include the token
-//       headers: {
-//         // Tell the backend the data is in JSON format
-//         'Content-Type': 'application/json',
-//         // Show the token to prove the user is logged in
-//         'Authorization': `Bearer ${token}`,
-//       },
-//       // Turn the order details into a JSON string to send
-//       body: JSON.stringify(orderData),
-//     });
-//     // Check if the backend says something went wrong
-//     if (!response.ok) {
-//       // Create an error message with the status code
-//       throw new Error(`HTTP error! status: ${response.status}`);
-//     }
-//     // Get the backend’s response (like a message saying “Order placed!”)
-//     const data = await response.json();
-//     // Show the user the message from the backend
-//     alert(data.message);
-//     // If the order was successful, update the UI
-//     if (response.ok) {
-//       // Show the dashboard to refresh the order list
-//       showSection(dashboard);
-//       // Get the updated order history to show the new order
-//       fetchOrders();
-//     }
-//   // If something goes wrong (like a network issue), handle the error
-//   } catch (error) {
-//     // Log the error for developers to debug
-//     console.error('Error during order placement:', error);
-//     // Show the user a message saying the order failed
-//     alert(`An error occurred during order placement: ${error.message}`);
-//   }
-// });
- 
-// Define a function to update the navigation bar based on whether the user is logged in
-// function updateNavbar() {
-//   // Get the “Sign Up” link from the navigation bar
-//   const signUpLink = document.getElementById('sign-up-link');
-//   // Get the “Sign In” link from the navigation bar
-//   const signInLink = document.getElementById('sign-in-link');
-//   // Check if the user has a token (membership card)
-//   if (token) {
-//     // If they’re logged in, hide the “Sign Up” link (they don’t need it)
-//     signUpLink.style.display = 'none';
-//     // Hide the “Sign In” link (they’re already signed in)
-//     signInLink.style.display = 'none';
-//   } else {
-//     // If they’re not logged in, show the “Sign Up” link to invite them to join
-//     signUpLink.style.display = 'inline';
-//     // Show the “Sign In” link to let them log in
-//     signInLink.style.display = 'inline';
-//   }
-// }
+  if (!signUp || !signIn || !logoutBtn) return;
 
-// Wait for the website to fully load before setting up the shop
-document.addEventListener('DOMContentLoaded', () => {
-  // Get the login form so we can control it later
-  const authForm = document.getElementById('auth-form');
-  // Get the sign-up form so we can control it later
-  const registerForm = document.getElementById('register-form');
-  // Get the order form so we can control it later
-  const orderForm = document.getElementById('order-form');
-  // Get the dashboard (VIP area) so we can show or hide it
-  const dashboard = document.getElementById('dashboard');
-  // Get the main page (home section) so we can show or hide it
-  const homeSection = document.getElementById('Home');
+  if (token) {
+    // Hide SignUp/SignIn and show Logout when user is logged in
+    signUp.style.display = "none";
+    signIn.style.display = "none";
+    // Display the logout button in the header
+    logoutBtn.style.display = "inline-block"; 
+  } else {
+    // Show SignUp/SignIn and hide Logout when user is logged out
+    signUp.style.display = "inline-block";
+    signIn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
+  }
+}
 
-  // Define a function to switch between the main page and dashboard
-  function showSection(section) {
-    // Show the main page (home section) if it’s selected, otherwise hide it
-    homeSection.style.display = section === homeSection ? 'grid' : 'none';
-    // Show the dashboard if it’s selected, otherwise hide it
-    dashboard.style.display = section === dashboard ? 'block' : 'none';
-  }
+/********************************
+ * DOM READY (ENTRY POINT)
+ ********************************/
+document.addEventListener("DOMContentLoaded", () => {
+  /* ===== DOM ELEMENTS ===== */
+  authForm = document.getElementById("auth-form");
+  registerForm = document.getElementById("register-form");
+  orderForm = document.getElementById("order-form");
+  dashboard = document.getElementById("dashboard");
+  homeSection = document.getElementById("Home");
 
-  // Update the navigation bar to set the initial state (show sign-up/sign-in links if not logged in)
-  // updateNavbar();
+  /* ===== MOBILE HEADER DROPDOWN ===== */
+  const menuToggle = document.getElementById("menu-toggle");
+  const navbar = document.querySelector(".navbar");
+  const headerBtn = document.querySelector(".header-btn");
 
-  // Listen for when someone clicks the “Sign Up” link to show the sign-up form
-  const reg =  document.getElementById('show-register');
-  console.log('reg', reg);
-  
-  reg.addEventListener('click', (e) => {
-    // Stop the link from acting like a normal link (we handle it ourselves)
-    e.preventDefault();
-    // Hide the login form
-    authForm.style.display = 'none';
-    // Show the sign-up form
-    registerForm.style.display = 'block';
-    // Hide the order form (not needed now)
-    orderForm.style.display = 'none';
-  });
+  if (menuToggle && navbar && headerBtn) {
+    menuToggle.addEventListener("click", () => {
+      navbar.classList.toggle("active");
+      headerBtn.classList.toggle("active");
+    });
+  }
 
-  // Listen for when someone clicks the “Sign In” link to show the login form
-  document.getElementById('show-login').addEventListener('click', (e) => {
-    // Stop the link from acting like a normal link (we handle it ourselves)
-    e.preventDefault();
-    // Show the login form
-    authForm.style.display = 'block';
-    // Hide the sign-up form
-    registerForm.style.display = 'none';
-    // Hide the order form (not needed now)
-    orderForm.style.display = 'none';
-  });
+  document.querySelectorAll(".navbar a").forEach(link => {
+    link.addEventListener("click", () => {
+      if (navbar) navbar.classList.remove("active");
+      if (headerBtn) headerBtn.classList.remove("active");
+    });
+  });
 
-  // Listen for when someone clicks the “Place New Order” button in the dashboard
-  document.getElementById('place-new-order').addEventListener('click', () => {
-    // Show the main page (home section)
-    showSection(homeSection);
-    // Hide the login form
-    authForm.style.display = 'none';
-    // Hide the sign-up form
-    registerForm.style.display = 'none';
-    // Show the order form so they can place a new order
-    orderForm.style.display = 'block';
-  });
+  /* ==================================== */
+  /* ===== FORM SWITCHING LOGIC (HOME) ===== */
+  /* ==================================== */
+
+  // Switch from Sign In to Sign Up
+  const showRegisterLink = document.getElementById("show-register");
+  if (showRegisterLink) {
+    showRegisterLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (authForm) authForm.style.display = "none";
+      if (registerForm) registerForm.style.display = "block";
+    });
+  }
+
+  // Switch from Sign Up to Sign In
+  const showLoginLink = document.getElementById("show-login");
+  if (showLoginLink) {
+    showLoginLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (authForm) authForm.style.display = "block";
+      if (registerForm) registerForm.style.display = "none";
+    });
+  }
+  
+  /* ===== PLACE NEW ORDER BUTTON LOGIC (DASHBOARD) ===== */
+  const placeNewOrderBtn = document.getElementById("place-new-order");
+  if (placeNewOrderBtn) {
+    placeNewOrderBtn.addEventListener("click", () => {
+      // Show Home section
+      showSection(homeSection);
+      
+      // Show the order form and hide auth forms on the home screen
+      if (authForm) authForm.style.display = "none";
+      if (registerForm) registerForm.style.display = "none";
+      if (orderForm) orderForm.style.display = "block";
+    });
+  }
+
+  /* ===== SCROLL REVEAL ===== */
+  if (typeof ScrollReveal !== 'undefined') {
+    const sr = ScrollReveal({
+      distance: "60px",
+      duration: 2500,
+      delay: 400,
+      reset: true
+    });
+
+    sr.reveal(".text", { origin: "top", delay: 200 });
+    sr.reveal(".form-container form", { origin: "left", delay: 800 });
+    sr.reveal(".heading", { origin: "top", delay: 800 });
+    sr.reveal(".service-container .box", { origin: "top", delay: 600 });
+    sr.reveal(".products-container .box", { origin: "top", delay: 600 });
+    sr.reveal(".about-container .about-text", { origin: "top", delay: 800 });
+    sr.reveal(".reviews-container", { origin: "top", delay: 800 });
+    sr.reveal(".newsletter .box", { origin: "bottom", delay: 400 });
+  }
+
+  updateNavbar();
 });
 
+/********************************
+ * SIGNUP
+ ********************************/
+document.getElementById("signup-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const name = document.getElementById("signup-name").value;
+  const email = document.getElementById("signup-email").value;
+  const password = document.getElementById("signup-password").value;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    if (res.ok) {
+      // On successful registration, switch back to the login form
+      if (authForm) authForm.style.display = "block";
+      if (registerForm) registerForm.style.display = "none";
+      // Clear form fields
+      document.getElementById("signup-form").reset();
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Signup failed");
+  }
+});
+
+/********************************
+ * LOGIN
+ ********************************/
+document.getElementById("login-form")?.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (data.token) {
+      token = data.token;
+      
+      // 1. Hide the authentication forms
+      if (authForm) authForm.style.display = "none";
+      if (registerForm) registerForm.style.display = "none";
+      
+      // 2. Display the main dashboard section
+      showSection(dashboard); 
+
+      // 3. Ensure the order form (part of Home section) is hidden
+      if (orderForm) orderForm.style.display = "none";
+      
+      // Clear login fields
+      document.getElementById("login-form").reset();
+
+      fetchOrders(); 
+      updateNavbar(); // Update to show Logout in header
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Login failed");
+  }
+});
+
+/********************************
+ * LOGOUT
+ ********************************/
+document.getElementById("logout")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  token = null;
+  
+  // Show the home section
+  showSection(homeSection);
+  
+  // Reset visibility to the default state (showing authForm)
+  if (authForm) authForm.style.display = "block";
+  if (registerForm) registerForm.style.display = "none";
+  if (orderForm) orderForm.style.display = "none"; 
+
+  // Clear orders display
+  const ordersDiv = document.getElementById("user-orders");
+  if (ordersDiv) ordersDiv.innerHTML = "";
+  
+  updateNavbar(); // Update to hide Logout and show SignIn/SignUp
+});
+
+/********************************
+ * FETCH ORDERS
+ ********************************/
+async function fetchOrders() {
+  const ordersDiv = document.getElementById("user-orders");
+  if (!ordersDiv) return;
+
+  ordersDiv.innerHTML = "<p>Loading your orders.....</p>"; 
+
+  try {
+    const res = await fetch("http://localhost:5000/api/order/my-orders", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      alert("Session expired. Please login again.");
+      token = null;
+      showSection(homeSection);
+      if (authForm) authForm.style.display = "block";
+      updateNavbar();
+      return;
+    }
+
+    const orders = await res.json();
+
+    if (!orders || orders.length === 0) {
+      ordersDiv.innerHTML = "<p>No orders found.</p>";
+      return;
+    }
+
+    ordersDiv.innerHTML =
+      "<h3>Your Orders</h3>" +
+      orders
+        .map(
+          order => `
+          <div class="order-item" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+            <p><strong>Product:</strong> ${order.product}</p>
+            <p><strong>Quantity:</strong> ${order.quantity}</p>
+            <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
+          </div>
+        `
+        )
+        .join("");
+  } catch (err) {
+    console.error(err);
+    ordersDiv.innerHTML = "<p>Error loading orders</p>";
+  }
+}
+
+/********************************
+ * PLACE ORDER
+ ********************************/
+document.getElementById("place-order-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!token) {
+    alert("Please login to place an order");
+    return;
+  }
+
+  const form = e.target;
+
+  const orderData = {
+    product: form.product.value,
+    quantity: form.quantity.value,
+    name: form.name.value,
+    email: form.email.value,
+    phone: form.phone.value,
+    message: form.message.value
+  };
+
+  try {
+    const res = await fetch("http://localhost:5000/api/order/place-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(orderData)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(`Order failed: ${data.message || 'Server error'}`);
+      return;
+    }
+
+    alert(data.message);
+
+    form.reset();
+    
+    // After placing a new order, switch back to the Dashboard to show the new order
+    showSection(dashboard);
+    fetchOrders(); 
+
+  } catch (err) {
+    console.error("Order error:", err);
+    alert("Failed to communicate with the order service.");
+  }
+});

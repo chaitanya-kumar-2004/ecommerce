@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const cors=require("cors")
 const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/order');
@@ -11,6 +13,7 @@ app.use(express.json());
 
 
 app.use("/api/auth",authRoutes)
+app.use("/api/order", orderRoutes);
 app.get('/test', (req, res) => res.send('Hello World'));
 
 
