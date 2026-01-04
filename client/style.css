@@ -10,6 +10,12 @@
   scroll-behavior: smooth;
   scroll-padding-top: 2rem;
 }
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 header {
   display: flex;
   justify-content: space-between;
@@ -448,6 +454,15 @@ header {
 }
 
 @media (max-width: 768px) {
+
+  .Home {
+    grid-template-columns: 1fr;
+    padding: 60px 20px;
+
+    background-position: center center;
+    background-size: cover;
+    background-attachment: scroll;
+  }
 
   header {
     position: relative;
