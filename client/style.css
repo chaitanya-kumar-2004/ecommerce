@@ -585,6 +585,33 @@ header {
     padding: 60px 20px;
     text-align: center;
   }
+
+  .service-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* ✅ centers cards horizontally */
+    gap: 20px;
+    padding: 0 10px;
+  }
+  .service-container .box {
+    width: 100%;
+    max-width: 320px;        /* ✅ controls card width */
+    text-align: center;
+  }
+
+  .reviews-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* ✅ centers review cards */
+    gap: 20px;
+    padding: 0 10px;
+  }
+
+  .reviews-container .box {
+    width: 100%;
+    max-width: 320px;        /* ✅ same width as service cards */
+    text-align: center;
+  }
    
 /* ---------------------------------------------------------------------------------------------- */
   /* product section */
