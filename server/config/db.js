@@ -1,18 +1,15 @@
-// db.js
-const mysql = require("mysql2");
+const mysql = require('mysql2');
 
-const pool = mysql.createPool({
-  host: "${{RAILWAY_PRIVATE_DOMAIN}}",
-  user: "root",
-  password:"${{MYSQL_ROOT_PASSWORD}}",
-  database: "railway",
-  port: "3306",
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+const dbConfig = {
+    host: process.env.MYSQL_HOST || 'containers-us-west-123.railway.app', 
+    user: process.env.MYSQL_USER || 'kumar',
+    password: process.env.MYSQL_PASSWORD || 'Mintu@2004', 
+    database: process.env.MYSQL_DATABASE || 'handicraft_store',
+    port: process.env.MYSQL_PORT || 3306 
+};
 
-module.exports = pool.promise();
+const pool = mysql.createPool(dbConfig);
 
+const promisePool = pool.promise();
 
-
-
+module.exports = promisePool;
